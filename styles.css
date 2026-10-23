@@ -1,0 +1,857 @@
+/* ========================================================
+   ESTILOS CORPORATIVOS PROFESIONALES - LUZ DEL SUR MÓVIL
+   Diseño sobrio, moderno y nativo (sin elementos toscos)
+   ======================================================== */
+
+:root {
+  --lds-navy: #002244;            /* Azul marino corporativo */
+  --lds-navy-light: #003366;
+  --lds-gold: #FFB300;            /* Amarillo / Oro Luz del Sur */
+  --lds-gold-soft: #FFF8E1;
+  --lds-surface: #FFFFFF;
+  --lds-bg: #F4F6F9;              /* Fondo suave neutro */
+  --lds-border: #D1D5DB;          /* Borde sutil 1px */
+  --lds-border-focus: #003366;
+  --lds-text-main: #0F172A;       /* Texto oscuro nítido */
+  --lds-text-muted: #64748B;      /* Texto secundario */
+  --lds-success: #059669;
+  --lds-danger: #DC2626;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+  background-color: var(--lds-bg);
+  color: var(--lds-text-main);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0;
+  margin: 0;
+}
+
+/* Contenedor tipo smartphone/tablet */
+.app-container {
+  width: 100%;
+  max-width: 480px;
+  min-height: 100vh;
+  background-color: var(--lds-surface);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* ==========================================
+   HEADER CORPORATIVO SOBRIO
+   ========================================== */
+.header {
+  background-color: var(--lds-navy);
+  color: #FFFFFF;
+  padding: 14px 16px 12px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  border-bottom: 3px solid var(--lds-gold);
+}
+
+.brand-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.brand-logo-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-badge {
+  background: var(--lds-gold);
+  color: var(--lds-navy);
+  font-weight: 900;
+  font-size: 0.95rem;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: -0.5px;
+}
+
+.brand-title {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  line-height: 1.2;
+}
+
+.brand-subtitle {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.5px;
+}
+
+.status-pill {
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: rgba(16, 185, 129, 0.18);
+  color: #34D399;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #10B981;
+}
+
+.datetime-bar {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.datetime-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.datetime-item svg {
+  width: 13px;
+  height: 13px;
+  fill: var(--lds-gold);
+}
+
+/* Banner de pérdida de señal */
+.network-alert-banner {
+  background: #FFFBEB;
+  border-bottom: 1px solid #FCD34D;
+  color: #92400E;
+  padding: 6px 14px;
+  font-size: 0.75rem;
+  display: none;
+  align-items: center;
+  gap: 6px;
+}
+
+.network-alert-banner.offline {
+  display: flex;
+  background: #FEF2F2;
+  border-bottom-color: #F87171;
+  color: #991B1B;
+}
+
+/* ==========================================
+   PESTAÑAS DE NAVEGACIÓN
+   ========================================== */
+.nav-tabs {
+  display: flex;
+  background-color: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 11px 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--lds-text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.tab-btn.active {
+  color: var(--lds-navy);
+  border-bottom-color: var(--lds-navy);
+  background: #FFFFFF;
+  font-weight: 700;
+}
+
+.tab-badge {
+  background: var(--lds-navy);
+  color: #FFFFFF;
+  font-size: 0.65rem;
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+/* ==========================================
+   FORMULARIO Y CAMPOS (COMPACTO Y REDUCIDO)
+   ========================================== */
+.content {
+  padding: 12px 14px;
+  flex: 1;
+}
+
+.form-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.form-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1E293B;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.required-mark {
+  color: var(--lds-danger);
+  margin-left: 2px;
+}
+
+.form-hint {
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: var(--lds-text-muted);
+}
+
+/* Inputs y Selects limpios y compactos */
+.input-control,
+.select-control,
+.textarea-control {
+  width: 100%;
+  height: 38px;
+  padding: 0 10px;
+  font-size: 0.88rem;
+  color: var(--lds-text-main);
+  background-color: #FFFFFF;
+  border: 1px solid var(--lds-border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.input-control:focus,
+.select-control:focus,
+.textarea-control:focus {
+  border-color: var(--lds-border-focus);
+  box-shadow: 0 0 0 2px rgba(0, 34, 68, 0.08);
+}
+
+.textarea-control {
+  height: auto;
+  min-height: 56px;
+  padding: 6px 10px;
+  resize: vertical;
+  line-height: 1.35;
+}
+
+/* Campo sólo lectura para Alim */
+.input-control[readonly] {
+  background-color: #F8FAFC;
+  color: #475569;
+  cursor: default;
+}
+
+.input-locked-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.lock-icon {
+  position: absolute;
+  right: 12px;
+  width: 15px;
+  height: 15px;
+  fill: #94A3B8;
+  pointer-events: none;
+}
+
+/* Selector SED */
+.sed-picker-btn {
+  width: 100%;
+  height: 38px;
+  background: #FFFFFF;
+  border: 1px solid var(--lds-border);
+  border-radius: var(--radius-sm);
+  padding: 0 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.88rem;
+  color: var(--lds-text-main);
+  cursor: pointer;
+  text-align: left;
+}
+
+.sed-picker-btn.selected {
+  border-color: var(--lds-navy);
+  background: #F8FAFC;
+}
+
+.sed-selected-code {
+  font-weight: 700;
+  color: var(--lds-navy);
+  font-size: 0.88rem;
+}
+
+.sed-placeholder {
+  color: #94A3B8;
+  font-weight: 400;
+}
+
+/* Botones selectores limpios para Material (Cobre / Aluminio) */
+.material-toggle-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.mat-toggle-btn {
+  height: 38px;
+  background: #FFFFFF;
+  border: 1px solid var(--lds-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.mat-toggle-btn.active {
+  background: var(--lds-navy);
+  color: #FFFFFF;
+  border-color: var(--lds-navy);
+}
+
+/* ==========================================
+   SECCIÓN DE EVIDENCIAS FOTOGRÁFICAS
+   ========================================== */
+.evidence-section {
+  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-md);
+  padding: 12px;
+  background: #FAFAFA;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.evidence-actions-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.btn-upload-action {
+  height: 38px;
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1E293B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.btn-upload-action svg {
+  width: 16px;
+  height: 16px;
+  fill: var(--lds-navy);
+}
+
+.evidence-queue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.evidence-item-compact {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.evidence-thumb-sm {
+  width: 42px;
+  height: 42px;
+  border-radius: 4px;
+  object-fit: cover;
+  border: 1px solid #CBD5E1;
+  flex-shrink: 0;
+}
+
+.evidence-info-compact {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.evidence-name-sm {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #0F172A;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.evidence-status-sm {
+  font-size: 0.7rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.evidence-status-sm.completed { color: var(--lds-success); }
+.evidence-status-sm.uploading { color: var(--lds-navy); }
+.evidence-status-sm.error { color: var(--lds-danger); }
+.evidence-status-sm.queued { color: var(--lds-text-muted); }
+
+.progress-bar-sm {
+  width: 100%;
+  height: 3px;
+  background: #E2E8F0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill-sm {
+  height: 100%;
+  background: var(--lds-navy);
+  transition: width 0.2s ease;
+}
+
+.btn-remove-sm {
+  background: transparent;
+  border: none;
+  color: #94A3B8;
+  font-size: 1.1rem;
+  padding: 4px;
+  cursor: pointer;
+}
+
+.btn-retry-sm {
+  background: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  color: var(--lds-danger);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ==========================================
+   BOTONES DE ACCIÓN PRINCIPALES
+   ========================================== */
+.form-actions-bar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  margin-top: 6px;
+  margin-bottom: 16px;
+}
+
+.btn-submit-main {
+  height: 44px;
+  background: var(--lds-navy);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.92rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.btn-submit-main:active {
+  background: #001830;
+}
+
+.btn-copy-bar {
+  width: 44px;
+  height: 44px;
+  background: #FFFFFF;
+  border: 1px solid var(--lds-border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--lds-navy);
+}
+
+.btn-copy-bar:active {
+  background: #F1F5F9;
+}
+
+.btn-copy-bar svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.btn-clean-link {
+  background: transparent;
+  border: none;
+  color: var(--lds-text-muted);
+  font-size: 0.75rem;
+  text-decoration: underline;
+  text-align: center;
+  margin-top: -6px;
+  cursor: pointer;
+}
+
+.app-credit {
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #94A3B8;
+  margin-top: 16px;
+  margin-bottom: 6px;
+  letter-spacing: 0.4px;
+}
+
+/* ==========================================
+   HISTORIAL: LISTA COMPACTA SED + CELDA
+   ========================================== */
+.history-view {
+  display: none;
+}
+
+.history-view.active {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.history-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.history-count-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--lds-navy);
+}
+
+.history-tools {
+  display: flex;
+  gap: 6px;
+}
+
+.tool-btn {
+  padding: 5px 9px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--lds-border);
+  background: #FFFFFF;
+  color: #334155;
+  cursor: pointer;
+}
+
+/* Fila de registro en base de datos */
+.db-record-row {
+  background: #FFFFFF;
+  border: 1px solid var(--lds-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.db-record-row:active {
+  background-color: #F8FAFC;
+}
+
+.db-record-primary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.db-sed-celda-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--lds-navy);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge-celda {
+  background: #E2E8F0;
+  color: #1E293B;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.db-sub-info {
+  font-size: 0.72rem;
+  color: var(--lds-text-muted);
+}
+
+.db-chevron {
+  color: #94A3B8;
+  font-size: 1.2rem;
+  font-weight: 300;
+}
+
+/* ==========================================
+   MODAL DE DETALLE COMPLETO DEL REGISTRO
+   ========================================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 100;
+  display: none;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.modal-overlay.open {
+  display: flex;
+}
+
+.modal-sheet {
+  background: #FFFFFF;
+  width: 100%;
+  max-width: 480px;
+  max-height: 85vh;
+  border-radius: 14px 14px 0 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #E2E8F0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #F8FAFC;
+}
+
+.modal-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--lds-navy);
+}
+
+.modal-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.4rem;
+  color: var(--lds-text-muted);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.modal-body-scroll {
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-table-card {
+  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-sm);
+  background: #FFFFFF;
+  overflow: hidden;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid #F1F5F9;
+  font-size: 0.82rem;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  color: var(--lds-text-muted);
+  font-weight: 500;
+}
+
+.detail-val {
+  color: var(--lds-text-main);
+  font-weight: 700;
+  text-align: right;
+}
+
+.detail-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.detail-gallery img {
+  width: 100%;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #E2E8F0;
+}
+
+/* Modal Search SED */
+.modal-search-box {
+  padding: 10px 14px;
+  border-bottom: 1px solid #E2E8F0;
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
+  height: 38px;
+  padding: 0 32px 0 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--lds-border);
+  font-size: 0.88rem;
+  outline: none;
+}
+
+.search-icon-svg {
+  position: absolute;
+  left: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  fill: #94A3B8;
+}
+
+.sed-results-list {
+  flex: 1;
+  overflow-y: auto;
+  list-style: none;
+  max-height: 50vh;
+}
+
+.sed-item {
+  padding: 10px 16px;
+  border-bottom: 1px solid #F1F5F9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  font-size: 0.88rem;
+}
+
+.sed-item:active {
+  background-color: #F8FAFC;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: #0F172A;
+  color: #FFFFFF;
+  padding: 10px 16px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 200;
+  transition: transform 0.25s ease-out;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+}
+
+.toast-icon {
+  width: 16px;
+  height: 16px;
+  fill: #34D399;
+}

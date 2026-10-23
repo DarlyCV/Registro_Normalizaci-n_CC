@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#002244">
+  <!-- POLÍTICA DE SEGURIDAD ESTRICTA (CSP) CON CONEXIÓN SEGURA HTTPS -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data: blob:; connect-src 'self' https: data: blob:; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
+  <meta name="referrer" content="no-referrer">
+  
+  <title>Luz del Sur - Control de Ternas</title>
+  <!-- FAVICON OFICIAL LUZ DEL SUR -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FFB300'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial,sans-serif' font-weight='900' font-size='24' fill='%23002244'%3ELDS%3C/text%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FFB300'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial,sans-serif' font-weight='900' font-size='24' fill='%23002244'%3ELDS%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css?v=2.8">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- HEADER CORPORATIVO SOBRIO -->
+    <header class="header">
+      <div class="brand-bar">
+        <div class="brand-logo-group">
+          <div class="logo-badge">LDS</div>
+          <div>
+            <h1 class="brand-title">Luz del Sur</h1>
+            <p class="brand-subtitle">Control de Ternas en SED</p>
+          </div>
+        </div>
+        <div class="status-pill" id="globalStatusPill">
+          <span class="status-dot"></span>
+          <span id="globalStatusText">En línea</span>
+        </div>
+      </div>
+
+      <!-- Barra de Fecha y Hora en tiempo real -->
+      <div class="datetime-bar">
+        <div class="datetime-item">
+          <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
+          <span id="liveDate">--/--/----</span>
+        </div>
+        <div class="datetime-item">
+          <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+          <span id="liveTime">--:--:--</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- BANNER DE ALERTA DE RED -->
+    <div id="networkAlert" class="network-alert-banner">
+      <span>⚠️ Sin conexión. Los registros se guardarán localmente.</span>
+    </div>
+
+    <!-- PESTAÑAS MÓVILES -->
+    <nav class="nav-tabs" role="tablist">
+      <button type="button" class="tab-btn active" id="tabForm">
+        <span>Nuevo Registro</span>
+      </button>
+      <button type="button" class="tab-btn" id="tabHistory">
+        <span>Registros en Base</span>
+        <span class="tab-badge" id="historyCountBadge">0</span>
+      </button>
+    </nav>
+
+    <!-- VISTA PRINCIPAL: FORMULARIO -->
+    <main class="content" id="viewForm">
+      <form id="ternasForm" class="form-card" autocomplete="off" novalidate>
+        
+        <!-- FILA 1: SED (IZQ) Y ALIM (DER) -->
+        <div class="form-grid-2">
+          <!-- 1. SED -->
+          <div class="form-group">
+            <label class="form-label" for="sedPickerBtn">
+              <span>1. SED<span class="required-mark">*</span></span>
+            </label>
+            <button type="button" id="sedPickerBtn" class="sed-picker-btn">
+              <span class="sed-placeholder">Buscar SED...</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="#94A3B8"><path d="M7 10l5 5 5-5z"/></svg>
+            </button>
+            <input type="hidden" id="sedHiddenInput" name="sed">
+          </div>
+
+          <!-- 2. ALIMENTADOR (AUTOCOMPLETADO) -->
+          <div class="form-group">
+            <label class="form-label" for="alimInput">
+              <span>2. Alim.<span class="required-mark">*</span></span>
+            </label>
+            <div class="input-locked-wrapper">
+              <input 
+                type="text" 
+                id="alimInput" 
+                class="input-control" 
+                placeholder="Automático" 
+                readonly 
+                tabindex="-1"
+              >
+              <svg class="lock-icon" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- FILA 2: CELDA (IZQ) Y CANT. TERNAS EXISTENTES (DER) -->
+        <div class="form-grid-2">
+          <!-- 3. CELDA (1 CARÁCTER: A, B, 1...) -->
+          <div class="form-group">
+            <label class="form-label" for="celdaInput">
+              <span>3. Celda<span class="required-mark">*</span></span>
+              <span class="form-hint">(A, B, 1...)</span>
+            </label>
+            <input 
+              type="text" 
+              id="celdaInput" 
+              class="input-control" 
+              maxlength="1" 
+              placeholder="Ej. A, 1" 
+              style="text-transform: uppercase; font-weight: 700; text-align: center;"
+              required
+            >
+          </div>
+
+          <!-- 4. CANTIDAD DE TERNAS EXISTENTES (1 DÍGITO) -->
+          <div class="form-group">
+            <label class="form-label" for="cantTernasExistentes">
+              <span>4. Cant. Ternas Exist.<span class="required-mark">*</span></span>
+              <span class="form-hint">(0-9)</span>
+            </label>
+            <input 
+              type="tel" 
+              id="cantTernasExistentes" 
+              class="input-control" 
+              maxlength="1" 
+              pattern="[0-9]" 
+              inputmode="numeric" 
+              placeholder="0 - 9" 
+              style="font-weight: 700; text-align: center;"
+              required
+            >
+          </div>
+        </div>
+
+        <!-- FILA 3: MATERIAL EXISTENTE (IZQ) Y CALIBRE EXISTENTE (DER) -->
+        <div class="form-grid-2">
+          <!-- 5. MATERIAL DE TERNA EXISTENTE -->
+          <div class="form-group">
+            <label class="form-label">
+              <span>5. Mat. Existente<span class="required-mark">*</span></span>
+            </label>
+            <div class="material-toggle-group" id="groupMatExistente" style="margin-top:0;">
+              <button type="button" class="mat-toggle-btn active" data-target="matTernaExistente" data-value="Cobre (Cu)">Cobre</button>
+              <button type="button" class="mat-toggle-btn" data-target="matTernaExistente" data-value="Aluminio (Al)">Aluminio</button>
+            </div>
+            <input type="hidden" id="matTernaExistente" value="Cobre (Cu)">
+          </div>
+
+          <!-- CALIBRE TERNA EXISTENTE -->
+          <div class="form-group">
+            <label class="form-label" for="calibreExistente">
+              <span>Calibre Exist. (mm²)<span class="required-mark">*</span></span>
+            </label>
+            <input 
+              type="number" 
+              id="calibreExistente" 
+              class="input-control" 
+              placeholder="Ej. 240, 500" 
+              min="0" 
+              step="any" 
+              inputmode="numeric" 
+              style="font-weight: 600; text-align: center;"
+              required
+            >
+          </div>
+        </div>
+
+        <!-- FILA 4: CANTIDAD INSTALADA (IZQ) Y MATERIAL INSTALADO (DER) -->
+        <div class="form-grid-2">
+          <!-- 6. CANTIDAD DE TERNAS INSTALADAS -->
+          <div class="form-group">
+            <label class="form-label" for="cantTernasInstaladas">
+              <span>6. Cant. Ternas Finales.<span class="required-mark">*</span></span>
+            </label>
+            <input 
+              type="number" 
+              id="cantTernasInstaladas" 
+              class="input-control" 
+              value="1" 
+              min="0" 
+              max="99" 
+              step="1" 
+              inputmode="numeric" 
+              placeholder="1, 2..." 
+              style="font-weight: 700; text-align: center;"
+              required
+            >
+          </div>
+
+          <!-- 7. MATERIAL DE TERNAS INSTALADAS -->
+          <div class="form-group">
+            <label class="form-label">
+              <span>7. Mat. Instalado<span class="required-mark">*</span></span>
+            </label>
+            <div class="material-toggle-group" id="groupMatInstaladas" style="margin-top:0;">
+              <button type="button" class="mat-toggle-btn active" data-target="matTernaInstalada" data-value="Cobre (Cu)">Cobre</button>
+              <button type="button" class="mat-toggle-btn" data-target="matTernaInstalada" data-value="Aluminio (Al)">Aluminio</button>
+            </div>
+            <input type="hidden" id="matTernaInstalada" value="Cobre (Cu)">
+          </div>
+        </div>
+
+        <!-- FILA 5: CALIBRE INSTALADO (IZQ) Y CONFIGURACIÓN (DER) -->
+        <div class="form-grid-2">
+          <!-- CALIBRE TERNAS INSTALADAS -->
+          <div class="form-group">
+            <label class="form-label" for="calibreInstaladas">
+              <span>Calibre Inst. (mm²)<span class="required-mark">*</span></span>
+            </label>
+            <input 
+              type="number" 
+              id="calibreInstaladas" 
+              class="input-control" 
+              placeholder="Ej. 240, 500" 
+              min="0" 
+              step="any" 
+              inputmode="numeric" 
+              style="font-weight: 600; text-align: center;"
+              required
+            >
+          </div>
+
+          <!-- CONFIGURACIÓN -->
+          <div class="form-group">
+            <label class="form-label" for="configuracionInput">
+              <span>Configuración<span class="required-mark">*</span></span>
+            </label>
+            <input 
+              type="text" 
+              id="configuracionInput" 
+              class="input-control" 
+              placeholder="Ej. 2(3-1x185mm2)" 
+              required
+            >
+          </div>
+        </div>
+
+        <!-- FILA 6: ¿TIENE CANDADO ELECTRÓNICO? -->
+        <div class="form-group">
+          <label class="form-label">
+            <span>¿Tiene Candado Electrónico?<span class="required-mark">*</span></span>
+          </label>
+          <div class="material-toggle-group" id="groupCandado" style="margin-top:0;">
+            <button type="button" class="mat-toggle-btn active" data-target="candadoElectronico" data-value="No">No</button>
+            <button type="button" class="mat-toggle-btn" data-target="candadoElectronico" data-value="Sí">Sí</button>
+          </div>
+          <input type="hidden" id="candadoElectronico" value="No">
+        </div>
+
+        <!-- 8. COMENTARIOS -->
+        <div class="form-group">
+          <label class="form-label" for="comentariosInput">
+            <span>8. Comentarios</span>
+            <span class="form-hint">Opcional</span>
+          </label>
+          <textarea 
+            id="comentariosInput" 
+            class="textarea-control" 
+            placeholder="Observaciones de la celda o instalación..."
+            rows="2"
+            maxlength="500"
+          ></textarea>
+        </div>
+
+        <!-- 9. RESPONSABLE -->
+        <div class="form-group">
+          <label class="form-label" for="responsableSelect">
+            <span>9. Responsable<span class="required-mark">*</span></span>
+          </label>
+          <select id="responsableSelect" class="select-control" required>
+            <option value="" disabled selected>Seleccione un responsable...</option>
+            <option value="Raúl Manuel Ames">Raúl Manuel Ames</option>
+            <option value="Carlos Vizcarra">Carlos Vizcarra</option>
+            <option value="Carlos Muñoz">Carlos Muñoz</option>
+            <option value="Evelio Salvador">Evelio Salvador</option>
+            <option value="Gilber Mendoza">Gilber Mendoza</option>
+            <option value="Noe Santos">Noe Santos</option>
+            <option value="José Aucatoma">José Aucatoma</option>
+          </select>
+        </div>
+
+        <!-- 10. EVIDENCIAS FOTOGRÁFICAS (SUBIDA SECUENCIAL LIMPIA) -->
+        <div class="form-group">
+          <label class="form-label">
+            <span>10. Evidencias Fotográficas</span>
+            <span class="form-hint" id="evidenceBadgeCount">0 fotos</span>
+          </label>
+          <div class="evidence-section">
+            <div class="evidence-actions-row">
+              <button type="button" class="btn-upload-action" id="btnCaptureCamera">
+                <svg viewBox="0 0 24 24"><path d="M12 15c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm7-10h-3.17L14 3H10L8.17 5H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 14H5V7h3.88l1.83-2h4.58l1.83 2H19v12z"/></svg>
+                <span>Tomar Foto</span>
+              </button>
+              <button type="button" class="btn-upload-action" id="btnSelectGallery">
+                <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                <span>De Galería</span>
+              </button>
+            </div>
+
+            <input type="file" id="cameraFileInput" accept="image/jpeg,image/png,image/webp" capture="environment" style="display: none;">
+            <input type="file" id="galleryFileInput" accept="image/jpeg,image/png,image/webp" multiple style="display: none;">
+
+            <div id="evidenceQueueList" class="evidence-queue-list"></div>
+          </div>
+        </div>
+
+        <!-- BARRA DE ACCIÓN PROFESIONAL -->
+        <div class="form-actions-bar">
+          <button type="submit" class="btn-submit-main" id="btnSubmit">
+            <span>Enviar Registro</span>
+          </button>
+          
+          <button type="button" class="btn-copy-bar" id="btnCopyClipboard" title="Copiar reporte al portapapeles">
+            <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+          </button>
+        </div>
+
+        <button type="button" class="btn-clean-link" id="btnClearForm">Limpiar formulario</button>
+
+        <div class="app-credit">Elaborado por DCV Company</div>
+
+      </form>
+    </main>
+
+    <!-- VISTA: REGISTROS EN BASE (LISTA SED Y CELDA + CLIC PARA ABRIR DETALLE) -->
+    <section class="content history-view" id="viewHistory" role="tabpanel">
+      <div class="history-topbar">
+        <span class="history-count-title" id="historyTitleHeader">Registros en Base (0)</span>
+        <div class="history-tools">
+          <button type="button" class="tool-btn" id="btnCopyAllHistory" title="Copiar resumen para WhatsApp">Copiar Todo</button>
+          <button type="button" class="tool-btn" id="btnExportCsv" title="Exportar Excel">Excel/CSV</button>
+        </div>
+      </div>
+      
+      <!-- Lista compacta de SED y Celda -->
+      <div id="historyList" style="display: flex; flex-direction: column; gap: 8px;">
+        <!-- Se llena dinámicamente -->
+      </div>
+
+      <div class="app-credit">Elaborado por DCV Company</div>
+    </section>
+
+    <!-- MODAL DETALLE COMPLETO DEL REGISTRO (AL DAR CLIC EN UN REGISTRO) -->
+    <div class="modal-overlay" id="recordDetailModal">
+      <div class="modal-sheet">
+        <div class="modal-header">
+          <span class="modal-title" id="detailModalTitle">Detalle de Registro</span>
+          <button type="button" class="modal-close-btn" id="closeDetailModal">&times;</button>
+        </div>
+        <div class="modal-body-scroll" id="detailModalBody">
+          <!-- Contenido inyectado dinámicamente -->
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL BÚSQUEDA RÁPIDA DE SED -->
+    <div class="modal-overlay" id="sedModal">
+      <div class="modal-sheet">
+        <div class="modal-header">
+          <span class="modal-title">Seleccionar SED</span>
+          <button type="button" class="modal-close-btn" id="closeSedModal">&times;</button>
+        </div>
+        <div class="modal-search-box">
+          <svg class="search-icon-svg" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+          <input type="text" id="sedSearchInput" class="search-input" placeholder="Buscar código SED..." autocapitalize="characters">
+        </div>
+        <ul class="sed-results-list" id="sedResultsList"></ul>
+      </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="appToast">
+      <svg class="toast-icon" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+      <span id="toastMessage">Operación exitosa</span>
+    </div>
+
+  </div>
+
+  <script src="config.js?v=2.8"></script>
+  <script src="sedData.js?v=2.8"></script>
+  <script src="evidenceManager.js?v=2.8"></script>
+  <script src="app.js?v=2.8"></script>
+</body>
+</html>
