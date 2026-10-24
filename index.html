@@ -12,7 +12,7 @@
   <!-- FAVICON OFICIAL LUZ DEL SUR -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FFB300'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial,sans-serif' font-weight='900' font-size='24' fill='%23002244'%3ELDS%3C/text%3E%3C/svg%3E">
   <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FFB300'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial,sans-serif' font-weight='900' font-size='24' fill='%23002244'%3ELDS%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=2.8">
+  <link rel="stylesheet" href="styles.css?v=4.6">
 </head>
 <body>
 
@@ -121,7 +121,12 @@
           <!-- 4. CANTIDAD DE TERNAS EXISTENTES (1 DÍGITO) -->
           <div class="form-group">
             <label class="form-label" for="cantTernasExistentes">
-              <span>4. Cant. Ternas Exist.<span class="required-mark">*</span></span>
+              <span style="display:inline-flex; align-items:center; gap:3px;">
+                4. Cant. Ternas Exist.<span class="required-mark">*</span>
+                <button type="button" class="btn-info-circle" id="btnInfoExistentes" title="Información sobre campos existentes">
+                  <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                </button>
+              </span>
               <span class="form-hint">(0-9)</span>
             </label>
             <input 
@@ -138,7 +143,7 @@
           </div>
         </div>
 
-        <!-- FILA 3: MATERIAL EXISTENTE (IZQ) Y CALIBRE EXISTENTE (DER) -->
+        <!-- FILA 3: MATERIAL EXISTENTE (IZQ) Y TIPO DE CABLE EXISTENTE (DER) -->
         <div class="form-grid-2">
           <!-- 5. MATERIAL DE TERNA EXISTENTE -->
           <div class="form-group">
@@ -152,96 +157,312 @@
             <input type="hidden" id="matTernaExistente" value="Cobre (Cu)">
           </div>
 
+          <!-- TIPO DE CABLE EXISTENTE (DEPENDIENTE DEL MATERIAL) -->
+          <div class="form-group">
+            <label class="form-label" for="tipoCableExistenteSelect">
+              <span>Tipo Cable Exist.<span class="required-mark">*</span></span>
+            </label>
+            <select id="tipoCableExistenteSelect" class="select-control" required>
+              <option value="N2XY">N2XY</option>
+              <option value="NYY">NYY</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- FILA 4: CALIBRE EXISTENTE (IZQ) Y TRANSFORMADOR (DER) -->
+        <div class="form-grid-2">
           <!-- CALIBRE TERNA EXISTENTE -->
           <div class="form-group">
             <label class="form-label" for="calibreExistente">
               <span>Calibre Exist. (mm²)<span class="required-mark">*</span></span>
             </label>
-            <input 
-              type="number" 
-              id="calibreExistente" 
-              class="input-control" 
-              placeholder="Ej. 240, 500" 
-              min="0" 
-              step="any" 
-              inputmode="numeric" 
-              style="font-weight: 600; text-align: center;"
-              required
-            >
+            <select id="calibreExistente" class="select-control" style="font-weight:600; text-align:center;" required>
+              <option value="" disabled selected>Seleccione...</option>
+            </select>
+          </div>
+
+          <!-- TRANSFORMADOR (TRIFÁSICO = 3, MONOFÁSICO = 2) -->
+          <div class="form-group">
+            <label class="form-label" for="transformadorSelect">
+              <span>Transformador<span class="required-mark">*</span></span>
+            </label>
+            <select id="transformadorSelect" class="select-control" required>
+              <option value="3" data-fases="3" selected>Trifásico (3)</option>
+              <option value="2" data-fases="2">Monofásico (2)</option>
+            </select>
           </div>
         </div>
 
-        <!-- FILA 4: CANTIDAD INSTALADA (IZQ) Y MATERIAL INSTALADO (DER) -->
-        <div class="form-grid-2">
-          <!-- 6. CANTIDAD DE TERNAS INSTALADAS -->
-          <div class="form-group">
-            <label class="form-label" for="cantTernasInstaladas">
-              <span>6. Cant. Ternas Finales.<span class="required-mark">*</span></span>
-            </label>
-            <input 
-              type="number" 
-              id="cantTernasInstaladas" 
-              class="input-control" 
-              value="1" 
-              min="0" 
-              max="99" 
-              step="1" 
-              inputmode="numeric" 
-              placeholder="1, 2..." 
-              style="font-weight: 700; text-align: center;"
-              required
-            >
+        <!-- FILA 5: CANTIDAD DE CONFIGURACIONES (1, 2 O 3) -->
+        <div class="form-group">
+          <label class="form-label" for="cantConfiguracionesSelect">
+            <span>Cantidad de Configuraciones<span class="required-mark">*</span></span>
+            <span class="form-hint">(1, 2 o 3)</span>
+          </label>
+          <select id="cantConfiguracionesSelect" class="select-control" style="font-weight:700;" required>
+            <option value="1" selected>1 Configuración</option>
+            <option value="2">2 Configuraciones</option>
+            <option value="3">3 Configuraciones</option>
+          </select>
+        </div>
+
+        <!-- ========================================================
+             BLOQUE: CONFIGURACIÓN 1 (SIEMPRE ACTIVA)
+             ======================================================== -->
+        <div class="config-section-card" id="boxConfig1">
+          <div class="config-section-header">
+            <span>Configuración 1</span>
+            <span class="config-badge">Conf 1</span>
           </div>
 
-          <!-- 7. MATERIAL DE TERNAS INSTALADAS -->
-          <div class="form-group">
-            <label class="form-label">
-              <span>7. Mat. Instalado<span class="required-mark">*</span></span>
-            </label>
-            <div class="material-toggle-group" id="groupMatInstaladas" style="margin-top:0;">
-              <button type="button" class="mat-toggle-btn active" data-target="matTernaInstalada" data-value="Cobre (Cu)">Cobre</button>
-              <button type="button" class="mat-toggle-btn" data-target="matTernaInstalada" data-value="Aluminio (Al)">Aluminio</button>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="cantTernasConf1">
+                <span>Cant. Ternas conf. 1<span class="required-mark">*</span></span>
+              </label>
+              <input 
+                type="number" 
+                id="cantTernasConf1" 
+                class="input-control calc-trigger" 
+                value="1" 
+                min="1" 
+                max="99" 
+                step="1" 
+                inputmode="numeric" 
+                placeholder="1, 2..." 
+                style="font-weight: 700; text-align: center;"
+                required
+              >
             </div>
-            <input type="hidden" id="matTernaInstalada" value="Cobre (Cu)">
-          </div>
-        </div>
 
-        <!-- FILA 5: CALIBRE INSTALADO (IZQ) Y CONFIGURACIÓN (DER) -->
-        <div class="form-grid-2">
-          <!-- CALIBRE TERNAS INSTALADAS -->
-          <div class="form-group">
-            <label class="form-label" for="calibreInstaladas">
-              <span>Calibre Inst. (mm²)<span class="required-mark">*</span></span>
-            </label>
-            <input 
-              type="number" 
-              id="calibreInstaladas" 
-              class="input-control" 
-              placeholder="Ej. 240, 500" 
-              min="0" 
-              step="any" 
-              inputmode="numeric" 
-              style="font-weight: 600; text-align: center;"
-              required
-            >
+            <div class="form-group">
+              <label class="form-label">
+                <span>Mat. Instalado<span class="required-mark">*</span></span>
+              </label>
+              <div class="material-toggle-group" id="groupMatConf1" style="margin-top:0;">
+                <button type="button" class="mat-toggle-btn active" data-target="matInstaladaConf1" data-value="Cobre (Cu)">Cobre</button>
+                <button type="button" class="mat-toggle-btn" data-target="matInstaladaConf1" data-value="Aluminio (Al)">Aluminio</button>
+              </div>
+              <input type="hidden" id="matInstaladaConf1" value="Cobre (Cu)">
+            </div>
           </div>
 
-          <!-- CONFIGURACIÓN -->
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="calibreConf1">
+                <span>Calibre Inst. (mm²)<span class="required-mark">*</span></span>
+              </label>
+              <select 
+                id="calibreConf1" 
+                class="select-control calc-trigger" 
+                style="font-weight: 600; text-align: center;"
+                required
+              >
+                <option value="" disabled selected>Seleccione...</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="tipoCableConf1Select">
+                <span>Tipo de Cable<span class="required-mark">*</span></span>
+              </label>
+              <select id="tipoCableConf1Select" class="select-control calc-trigger" required>
+                <option value="N2XY">N2XY</option>
+                <option value="NYY">NYY</option>
+              </select>
+            </div>
+          </div>
+
           <div class="form-group">
-            <label class="form-label" for="configuracionInput">
-              <span>Configuración<span class="required-mark">*</span></span>
+            <label class="form-label" for="configCalcConf1">
+              <span>Configuración 1 (Automática)</span>
             </label>
             <input 
               type="text" 
-              id="configuracionInput" 
-              class="input-control" 
+              id="configCalcConf1" 
+              class="input-control config-auto-input" 
               placeholder="Ej. 2(3-1x185mm2)" 
-              required
+              readonly 
+              tabindex="-1"
             >
           </div>
         </div>
 
-        <!-- FILA 6: ¿TIENE CANDADO ELECTRÓNICO? -->
+        <!-- ========================================================
+             BLOQUE: CONFIGURACIÓN 2 (OPCIONAL)
+             ======================================================== -->
+        <div class="config-section-card" id="boxConfig2" style="display: none;">
+          <div class="config-section-header">
+            <span>Configuración 2</span>
+            <span class="config-badge">Conf 2</span>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="cantTernasConf2">
+                <span>Cant. Ternas conf. 2<span class="required-mark">*</span></span>
+              </label>
+              <input 
+                type="number" 
+                id="cantTernasConf2" 
+                class="input-control calc-trigger" 
+                value="1" 
+                min="1" 
+                max="99" 
+                step="1" 
+                inputmode="numeric" 
+                placeholder="1, 2..." 
+                style="font-weight: 700; text-align: center;"
+              >
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                <span>Mat. Instalado<span class="required-mark">*</span></span>
+              </label>
+              <div class="material-toggle-group" id="groupMatConf2" style="margin-top:0;">
+                <button type="button" class="mat-toggle-btn active" data-target="matInstaladaConf2" data-value="Cobre (Cu)">Cobre</button>
+                <button type="button" class="mat-toggle-btn" data-target="matInstaladaConf2" data-value="Aluminio (Al)">Aluminio</button>
+              </div>
+              <input type="hidden" id="matInstaladaConf2" value="Cobre (Cu)">
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="calibreConf2">
+                <span>Calibre Inst. (mm²)<span class="required-mark">*</span></span>
+              </label>
+              <select 
+                id="calibreConf2" 
+                class="select-control calc-trigger" 
+                style="font-weight: 600; text-align: center;"
+              >
+                <option value="" disabled selected>Seleccione...</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="tipoCableConf2Select">
+                <span>Tipo de Cable<span class="required-mark">*</span></span>
+              </label>
+              <select id="tipoCableConf2Select" class="select-control calc-trigger">
+                <option value="N2XY">N2XY</option>
+                <option value="NYY">NYY</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="configCalcConf2">
+              <span>Configuración 2 (Automática)</span>
+            </label>
+            <input 
+              type="text" 
+              id="configCalcConf2" 
+              class="input-control config-auto-input" 
+              placeholder="Ej. 3(3-1x185mm2)" 
+              readonly 
+              tabindex="-1"
+            >
+          </div>
+        </div>
+
+        <!-- ========================================================
+             BLOQUE: CONFIGURACIÓN 3 (OPCIONAL)
+             ======================================================== -->
+        <div class="config-section-card" id="boxConfig3" style="display: none;">
+          <div class="config-section-header">
+            <span>Configuración 3</span>
+            <span class="config-badge">Conf 3</span>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="cantTernasConf3">
+                <span>Cant. Ternas conf. 3<span class="required-mark">*</span></span>
+              </label>
+              <input 
+                type="number" 
+                id="cantTernasConf3" 
+                class="input-control calc-trigger" 
+                value="1" 
+                min="1" 
+                max="99" 
+                step="1" 
+                inputmode="numeric" 
+                placeholder="1, 2..." 
+                style="font-weight: 700; text-align: center;"
+              >
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                <span>Mat. Instalado<span class="required-mark">*</span></span>
+              </label>
+              <div class="material-toggle-group" id="groupMatConf3" style="margin-top:0;">
+                <button type="button" class="mat-toggle-btn active" data-target="matInstaladaConf3" data-value="Cobre (Cu)">Cobre</button>
+                <button type="button" class="mat-toggle-btn" data-target="matInstaladaConf3" data-value="Aluminio (Al)">Aluminio</button>
+              </div>
+              <input type="hidden" id="matInstaladaConf3" value="Cobre (Cu)">
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="calibreConf3">
+                <span>Calibre Inst. (mm²)<span class="required-mark">*</span></span>
+              </label>
+              <select 
+                id="calibreConf3" 
+                class="select-control calc-trigger" 
+                style="font-weight: 600; text-align: center;"
+              >
+                <option value="" disabled selected>Seleccione...</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="tipoCableConf3Select">
+                <span>Tipo de Cable<span class="required-mark">*</span></span>
+              </label>
+              <select id="tipoCableConf3Select" class="select-control calc-trigger">
+                <option value="N2XY">N2XY</option>
+                <option value="NYY">NYY</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="configCalcConf3">
+              <span>Configuración 3 (Automática)</span>
+            </label>
+            <input 
+              type="text" 
+              id="configCalcConf3" 
+              class="input-control config-auto-input" 
+              placeholder="Ej. 1(3-1x185mm2)" 
+              readonly 
+              tabindex="-1"
+            >
+          </div>
+        </div>
+
+        <!-- ========================================================
+             RESUMEN: CAMPO CONFIGURACIÓN FINAL
+             ======================================================== -->
+        <div class="form-group">
+          <label class="form-label">
+            <span>Configuración Final (Generada)<span class="required-mark">*</span></span>
+          </label>
+          <div class="config-final-wrapper">
+            <span class="config-final-title">Fórmula Resultante:</span>
+            <div class="config-final-text" id="configFinalDisplay">Esperando datos...</div>
+            <input type="hidden" id="configuracionFinalInput" name="configuracionFinal" value="">
+          </div>
+        </div>
+
+        <!-- FILA: ¿TIENE CANDADO ELECTRÓNICO? -->
         <div class="form-group">
           <label class="form-label">
             <span>¿Tiene Candado Electrónico?<span class="required-mark">*</span></span>
@@ -374,6 +595,22 @@
       </div>
     </div>
 
+    <!-- MODAL INFORMATIVO: TERNAS EXISTENTES (INSPECCIÓN INICIAL) -->
+    <div class="modal-overlay" id="infoExistentesModal">
+      <div class="modal-sheet info-sheet">
+        <div class="info-sheet-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+        </div>
+        <div class="info-sheet-title">Ternas Existentes en Celda</div>
+        <div class="info-sheet-desc">
+          Estos campos corresponden a la <strong>inspección inicial</strong> de la celda: registra la cantidad de ternas, material, tipo de cable y calibre que encuentras físicamente instalados al momento de llegar a la SED antes de realizar nuevos trabajos.
+        </div>
+        <button type="button" class="btn-submit-main" id="btnCloseInfoExistentes" style="width: 100%; height: 38px; font-size: 0.85rem; margin-top: 14px;">
+          Entendido
+        </button>
+      </div>
+    </div>
+
     <!-- TOAST -->
     <div class="toast" id="appToast">
       <svg class="toast-icon" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
@@ -382,9 +619,15 @@
 
   </div>
 
-  <script src="config.js?v=2.8"></script>
-  <script src="sedData.js?v=2.8"></script>
-  <script src="evidenceManager.js?v=2.8"></script>
-  <script src="app.js?v=2.8"></script>
+  <script>
+    // Atrapador global de errores para diagnóstico en dispositivos móviles
+    window.addEventListener('error', function(e) {
+      console.error('[Error detectado]:', e.message, 'en', e.filename, 'línea:', e.lineno);
+    });
+  </script>
+  <script src="config.js?v=4.6"></script>
+  <script src="sedData.js?v=4.6"></script>
+  <script src="evidenceManager.js?v=4.6"></script>
+  <script src="app.js?v=4.6"></script>
 </body>
 </html>

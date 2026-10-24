@@ -7,37 +7,35 @@ let currentLiveDateTime = '';
 let selectedSed = null;
 let selectedAlim = '';
 
-document.addEventListener('DOMContentLoaded', () => {
-  // 1. Reloj en tiempo real
-  initLiveClock();
+function safeInit(name, fn) {
+  try {
+    fn();
+  } catch (err) {
+    console.error(`[Error inicializando ${name}]:`, err);
+  }
+}
 
-  // 2. Monitoreo de conectividad
-  initNetworkMonitor();
+function startApp() {
+  safeInit('liveClock', initLiveClock);
+  safeInit('networkMonitor', initNetworkMonitor);
+  safeInit('sedPicker', initSedPicker);
+  safeInit('inputMasks', initInputMasks);
+  safeInit('materialToggles', initMaterialToggles);
+  safeInit('configuracionesEngine', initConfiguracionesEngine);
+  safeInit('responsableStorage', initResponsableStorage);
+  safeInit('evidenceSection', initEvidenceSection);
+  safeInit('formSubmission', initFormSubmission);
+  safeInit('tabsAndHistory', initTabsAndHistory);
+  safeInit('clipboardFeatures', initClipboardFeatures);
+  safeInit('infoModal', initInfoExistentesModal);
+}
 
-  // 3. Selector de SED
-  initSedPicker();
-
-  // 4. Validación de Celda (1 carácter: A, B, C o 1, 2, 3) y Cantidades
-  initInputMasks();
-
-  // 5. Botones de selección de Material (Cobre / Aluminio)
-  initMaterialToggles();
-
-  // 6. Recordar último responsable
-  initResponsableStorage();
-
-  // 7. Gestor de Evidencias
-  initEvidenceSection();
-
-  // 8. Envío de Formulario
-  initFormSubmission();
-
-  // 9. Historial y Modal de Detalle
-  initTabsAndHistory();
-
-  // 10. Copiar al Portapapeles
-  initClipboardFeatures();
-});
+// Inicialización ultra-segura para navegadores móviles (Safari/Chrome)
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', startApp);
+} else {
+  startApp();
+}
 
 /* ==========================================================
    1. RELOJ EN TIEMPO REAL
@@ -112,7 +110,8 @@ function initSedPicker() {
   const alimInput = document.getElementById('alimInput');
   const sedHiddenInput = document.getElementById('sedHiddenInput');
 
-  const sedKeys = Object.keys(SED_DATABASE);
+  const sedDb = (typeof SED_DATABASE !== 'undefined') ? SED_DATABASE : {};
+  const sedKeys = Object.keys(sedDb);
 
   function openModal() {
     sedModal.classList.add('open');
@@ -140,7 +139,7 @@ function initSedPicker() {
     }
 
     matches.slice(0, 40).forEach(sed => {
-      const alim = SED_DATABASE[sed];
+      const alim = sedDb[sed];
       const li = document.createElement('li');
       li.className = 'sed-item';
       li.innerHTML = `
@@ -218,14 +217,80 @@ function initInputMasks() {
       clean = clean.charAt(0);
     }
     e.target.value = clean;
+    const cableType = document.getElementById('tipoCableExistenteSelect')?.value || 'N2XY';
+    updateCalibreSelect('calibreExistente', cableType);
   });
 }
 
 /* ==========================================================
-   5. BOTONES DE SELECCIÓN DE MATERIAL (COBRE / ALUMINIO)
+   5. BOTONES DE SELECCIÓN DE MATERIAL, TIPOS DE CABLE Y CALIBRES
+   Tabla técnica oficial de Luz Del Sur:
+   - NA2XY (Aluminio): [400, 240, 185, 120, 95] mm²
+   - NAYY  (Aluminio): [500, 300, 185, 120] mm²
+   - N2XY  (Cobre)   : [500, 300, 240, 185, 120, 70] mm²
+   - NYY   (Cobre)   : [500, 300, 185, 120, 70] mm²
    ========================================================== */
+const CABLE_TYPE_OPTIONS = {
+  'Cobre (Cu)': ['N2XY', 'NYY'],
+  'Aluminio (Al)': ['NA2XY', 'NAYY']
+};
+
+const CABLE_CALIBRES = {
+  'NA2XY': [400, 240, 185, 120, 95],
+  'NAXY':  [400, 240, 185, 120, 95],
+  'NAYY':  [500, 300, 185, 120],
+  'N2XY':  [500, 300, 240, 185, 120, 70],
+  'NYY':   [500, 300, 185, 120, 70]
+};
+
+function updateCalibreSelect(calibreSelectId, cableType, defaultVal) {
+  const selectEl = document.getElementById(calibreSelectId);
+  if (!selectEl) return;
+
+  // Manejo especial para calibre existente cuando cantidad es '0'
+  if (calibreSelectId === 'calibreExistente') {
+    const cantVal = document.getElementById('cantTernasExistentes')?.value?.trim();
+    if (cantVal === '0') {
+      selectEl.innerHTML = '<option value="0" selected>0 mm² (Sin terna)</option>';
+      selectEl.disabled = true;
+      return;
+    } else {
+      selectEl.disabled = false;
+    }
+  }
+
+  const calibres = CABLE_CALIBRES[cableType] || [500, 300, 240, 185, 120, 95, 70];
+  const prevVal = selectEl.value;
+
+  selectEl.innerHTML = calibres.map(c => `<option value="${c}">${c} mm²</option>`).join('');
+
+  if (defaultVal && calibres.includes(Number(defaultVal))) {
+    selectEl.value = String(defaultVal);
+  } else if (prevVal && calibres.includes(Number(prevVal))) {
+    selectEl.value = prevVal;
+  } else {
+    // Si no coincide o es nuevo, seleccionar el valor preferencial disponible
+    const preferred = calibres.includes(185) ? '185' : (calibres.includes(240) ? '240' : String(calibres[0]));
+    selectEl.value = preferred;
+  }
+}
+
+function updateCableTypeSelect(cableSelectId, calibreSelectId, material) {
+  const selectEl = document.getElementById(cableSelectId);
+  if (!selectEl) return;
+  const isAl = material && material.includes('Aluminio');
+  const opts = isAl ? CABLE_TYPE_OPTIONS['Aluminio (Al)'] : CABLE_TYPE_OPTIONS['Cobre (Cu)'];
+  const current = selectEl.value;
+  selectEl.innerHTML = opts.map(o => `<option value="${o}">${o}</option>`).join('');
+  selectEl.value = opts.includes(current) ? current : opts[0];
+
+  if (calibreSelectId) {
+    updateCalibreSelect(calibreSelectId, selectEl.value);
+  }
+}
+
 function initMaterialToggles() {
-  function setupGroup(groupId, inputId) {
+  function setupGroup(groupId, inputId, onChangeCallback) {
     const group = document.getElementById(groupId);
     const hiddenInput = document.getElementById(inputId);
     if (!group || !hiddenInput) return;
@@ -235,14 +300,191 @@ function initMaterialToggles() {
       btn.addEventListener('click', () => {
         buttons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        hiddenInput.value = btn.getAttribute('data-value');
+        const val = btn.getAttribute('data-value');
+        hiddenInput.value = val;
+        if (typeof onChangeCallback === 'function') {
+          onChangeCallback(val);
+        }
       });
     });
   }
 
-  setupGroup('groupMatExistente', 'matTernaExistente');
-  setupGroup('groupMatInstaladas', 'matTernaInstalada');
+  // Material existente -> actualiza tipo de cable y calibre existente
+  setupGroup('groupMatExistente', 'matTernaExistente', (mat) => {
+    updateCableTypeSelect('tipoCableExistenteSelect', 'calibreExistente', mat);
+  });
+
+  // Material Config 1 -> actualiza tipo cable y calibre conf 1
+  setupGroup('groupMatConf1', 'matInstaladaConf1', (mat) => {
+    updateCableTypeSelect('tipoCableConf1Select', 'calibreConf1', mat);
+    recalcAllConfigurations();
+  });
+
+  // Material Config 2 -> actualiza tipo cable y calibre conf 2
+  setupGroup('groupMatConf2', 'matInstaladaConf2', (mat) => {
+    updateCableTypeSelect('tipoCableConf2Select', 'calibreConf2', mat);
+    recalcAllConfigurations();
+  });
+
+  // Material Config 3 -> actualiza tipo cable y calibre conf 3
+  setupGroup('groupMatConf3', 'matInstaladaConf3', (mat) => {
+    updateCableTypeSelect('tipoCableConf3Select', 'calibreConf3', mat);
+    recalcAllConfigurations();
+  });
+
+  // Candado electrónico
   setupGroup('groupCandado', 'candadoElectronico');
+}
+
+/* ==========================================================
+   5.1 MOTOR DE CÁLCULO DE CONFIGURACIONES DINÁMICAS
+   Fórmula técnica: {CantTernas}({Fases}-1x{Calibre}mm2)
+   ========================================================== */
+function calculateSingleConfig(num) {
+  const cantInput = document.getElementById(`cantTernasConf${num}`);
+  const calibreInput = document.getElementById(`calibreConf${num}`);
+  const calcOutput = document.getElementById(`configCalcConf${num}`);
+
+  const cant = cantInput ? cantInput.value.trim() : '';
+  const calibre = calibreInput ? calibreInput.value.trim() : '';
+  
+  const transfSelect = document.getElementById('transformadorSelect');
+  const fases = (transfSelect ? transfSelect.value : '3') || '3'; // 3 si Trifásico, 2 si Monofásico
+
+  if (!cant || !calibre || isNaN(calibre) || Number(calibre) <= 0) {
+    if (calcOutput) calcOutput.value = '';
+    return '';
+  }
+
+  // Ejemplo: 2(3-1x185mm2)
+  const formula = `${cant}(${fases}-1x${calibre}mm2)`;
+  if (calcOutput) calcOutput.value = formula;
+  return formula;
+}
+
+function recalcAllConfigurations() {
+  const selectCant = document.getElementById('cantConfiguracionesSelect');
+  const cantConfigs = selectCant ? parseInt(selectCant.value, 10) : 1;
+
+  const f1 = calculateSingleConfig(1);
+  const f2 = (cantConfigs >= 2) ? calculateSingleConfig(2) : '';
+  const f3 = (cantConfigs >= 3) ? calculateSingleConfig(3) : '';
+
+  const activeFormulas = [];
+  if (f1) activeFormulas.push(f1);
+  if (cantConfigs >= 2 && f2) activeFormulas.push(f2);
+  if (cantConfigs >= 3 && f3) activeFormulas.push(f3);
+
+  const finalStr = activeFormulas.join(' + ');
+  const displayEl = document.getElementById('configFinalDisplay');
+  const hiddenInput = document.getElementById('configuracionFinalInput');
+
+  if (finalStr) {
+    if (displayEl) displayEl.textContent = finalStr;
+    if (hiddenInput) hiddenInput.value = finalStr;
+  } else {
+    if (displayEl) displayEl.textContent = 'Esperando datos...';
+    if (hiddenInput) hiddenInput.value = '';
+  }
+}
+
+function initConfiguracionesEngine() {
+  const selectCant = document.getElementById('cantConfiguracionesSelect');
+  const transfSelect = document.getElementById('transformadorSelect');
+  const box2 = document.getElementById('boxConfig2');
+  const box3 = document.getElementById('boxConfig3');
+
+  function updateVisibility() {
+    const val = parseInt(selectCant.value, 10) || 1;
+    if (box2) box2.style.display = (val >= 2) ? 'flex' : 'none';
+    if (box3) box3.style.display = (val >= 3) ? 'flex' : 'none';
+    recalcAllConfigurations();
+  }
+
+  if (selectCant) {
+    selectCant.addEventListener('change', updateVisibility);
+    selectCant.addEventListener('input', updateVisibility);
+  }
+
+  if (transfSelect) {
+    transfSelect.addEventListener('change', recalcAllConfigurations);
+    transfSelect.addEventListener('input', recalcAllConfigurations);
+  }
+
+  // Escucha cuando el técnico cambia el Tipo de Cable directamente
+  const tipoExistSelect = document.getElementById('tipoCableExistenteSelect');
+  if (tipoExistSelect) {
+    tipoExistSelect.addEventListener('change', (e) => {
+      updateCalibreSelect('calibreExistente', e.target.value);
+    });
+  }
+
+  const tipo1Select = document.getElementById('tipoCableConf1Select');
+  if (tipo1Select) {
+    tipo1Select.addEventListener('change', (e) => {
+      updateCalibreSelect('calibreConf1', e.target.value);
+      recalcAllConfigurations();
+    });
+  }
+
+  const tipo2Select = document.getElementById('tipoCableConf2Select');
+  if (tipo2Select) {
+    tipo2Select.addEventListener('change', (e) => {
+      updateCalibreSelect('calibreConf2', e.target.value);
+      recalcAllConfigurations();
+    });
+  }
+
+  const tipo3Select = document.getElementById('tipoCableConf3Select');
+  if (tipo3Select) {
+    tipo3Select.addEventListener('change', (e) => {
+      updateCalibreSelect('calibreConf3', e.target.value);
+      recalcAllConfigurations();
+    });
+  }
+
+  // Escuchar inputs y selects disparadores de cálculo (.calc-trigger)
+  const triggers = document.querySelectorAll('.calc-trigger');
+  triggers.forEach(el => {
+    el.addEventListener('input', recalcAllConfigurations);
+    el.addEventListener('change', recalcAllConfigurations);
+  });
+
+  // Inicializar tipos de cable y sus calibres según materiales predeterminados
+  updateCableTypeSelect('tipoCableExistenteSelect', 'calibreExistente', 'Cobre (Cu)');
+  updateCableTypeSelect('tipoCableConf1Select', 'calibreConf1', 'Cobre (Cu)');
+  updateCableTypeSelect('tipoCableConf2Select', 'calibreConf2', 'Cobre (Cu)');
+  updateCableTypeSelect('tipoCableConf3Select', 'calibreConf3', 'Cobre (Cu)');
+
+  updateVisibility();
+}
+
+/* ==========================================================
+   5.2 MODAL INFORMATIVO PARA TERNAS EXISTENTES
+   ========================================================== */
+function initInfoExistentesModal() {
+  const btnOpen = document.getElementById('btnInfoExistentes');
+  const modal = document.getElementById('infoExistentesModal');
+  const btnClose = document.getElementById('btnCloseInfoExistentes');
+
+  if (btnOpen && modal) {
+    btnOpen.addEventListener('click', (e) => {
+      e.preventDefault();
+      modal.classList.add('open');
+    });
+  }
+
+  if (btnClose && modal) {
+    btnClose.addEventListener('click', () => {
+      modal.classList.remove('open');
+    });
+  }
+
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.classList.remove('open');
+    });
+  }
 }
 
 /* ==========================================================
@@ -273,23 +515,29 @@ function initEvidenceSection() {
   const queueList = document.getElementById('evidenceQueueList');
   const badgeCount = document.getElementById('evidenceBadgeCount');
 
-  evidenceManager = new EvidenceManager({
-    maxDimension: 1280,
-    compressionQuality: 0.75,
-    onQueueUpdate: (queue) => {
-      renderEvidenceQueue(queue, queueList, badgeCount);
-    }
-  });
+  if (typeof EvidenceManager !== 'undefined') {
+    evidenceManager = new EvidenceManager({
+      maxDimension: 1280,
+      compressionQuality: 0.75,
+      onQueueUpdate: (queue) => {
+        renderEvidenceQueue(queue, queueList, badgeCount);
+      }
+    });
+  }
 
-  btnCamera.addEventListener('click', () => {
-    cameraInput.value = '';
-    cameraInput.click();
-  });
+  if (btnCamera && cameraInput) {
+    btnCamera.addEventListener('click', () => {
+      cameraInput.value = '';
+      cameraInput.click();
+    });
+  }
 
-  btnGallery.addEventListener('click', () => {
-    galleryInput.value = '';
-    galleryInput.click();
-  });
+  if (btnGallery && galleryInput) {
+    btnGallery.addEventListener('click', () => {
+      galleryInput.value = '';
+      galleryInput.click();
+    });
+  }
 
   async function handleFiles(fileList) {
     if (!fileList || fileList.length === 0) return;
@@ -388,17 +636,49 @@ function initFormSubmission() {
     const sed = document.getElementById('sedHiddenInput').value.trim();
     const alim = document.getElementById('alimInput').value.trim();
     const celda = document.getElementById('celdaInput').value.trim().toUpperCase();
+    
+    // Terna Existente
     const cantExist = document.getElementById('cantTernasExistentes').value.trim();
     const matExist = document.getElementById('matTernaExistente').value.trim();
     const calibreExist = document.getElementById('calibreExistente').value.trim();
-    const cantInst = document.getElementById('cantTernasInstaladas').value.trim();
-    const matInst = document.getElementById('matTernaInstalada').value.trim();
-    const calibreInst = document.getElementById('calibreInstaladas').value.trim();
-    const configuracion = document.getElementById('configuracionInput').value.trim();
+    const tipoCableExist = document.getElementById('tipoCableExistenteSelect').value.trim();
+
+    // Transformador y Cantidad de Configuraciones
+    const transfSelect = document.getElementById('transformadorSelect');
+    const transfFases = transfSelect ? transfSelect.value : '3';
+    const transfTexto = transfSelect ? transfSelect.options[transfSelect.selectedIndex].text : 'Trifásico (3)';
+    
+    const selectCant = document.getElementById('cantConfiguracionesSelect');
+    const cantConfigs = selectCant ? parseInt(selectCant.value, 10) : 1;
+
+    // Configuración 1
+    const cantConf1 = document.getElementById('cantTernasConf1').value.trim();
+    const matConf1 = document.getElementById('matInstaladaConf1').value.trim();
+    const calibreConf1 = document.getElementById('calibreConf1').value.trim();
+    const tipoCableConf1 = document.getElementById('tipoCableConf1Select').value.trim();
+
+    // Configuración 2
+    const cantConf2 = document.getElementById('cantTernasConf2') ? document.getElementById('cantTernasConf2').value.trim() : '';
+    const matConf2 = document.getElementById('matInstaladaConf2') ? document.getElementById('matInstaladaConf2').value.trim() : '';
+    const calibreConf2 = document.getElementById('calibreConf2') ? document.getElementById('calibreConf2').value.trim() : '';
+    const tipoCableConf2 = document.getElementById('tipoCableConf2Select') ? document.getElementById('tipoCableConf2Select').value.trim() : '';
+
+    // Configuración 3
+    const cantConf3 = document.getElementById('cantTernasConf3') ? document.getElementById('cantTernasConf3').value.trim() : '';
+    const matConf3 = document.getElementById('matInstaladaConf3') ? document.getElementById('matInstaladaConf3').value.trim() : '';
+    const calibreConf3 = document.getElementById('calibreConf3') ? document.getElementById('calibreConf3').value.trim() : '';
+    const tipoCableConf3 = document.getElementById('tipoCableConf3Select') ? document.getElementById('tipoCableConf3Select').value.trim() : '';
+
+    // Configuración Final
+    recalcAllConfigurations();
+    const configFinal = (document.getElementById('configuracionFinalInput')?.value || '').trim();
+
+    // Candado, comentarios, responsable
     const candado = document.getElementById('candadoElectronico').value.trim() || 'No';
     const comentarios = document.getElementById('comentariosInput').value.trim();
     const responsable = document.getElementById('responsableSelect').value.trim();
 
+    // Validaciones
     if (!sed) {
       alert('Por favor selecciona una SED.');
       document.getElementById('sedPickerBtn').focus();
@@ -423,21 +703,49 @@ function initFormSubmission() {
       return;
     }
 
-    if (cantInst === '' || isNaN(cantInst) || parseInt(cantInst, 10) < 0) {
-      alert('Ingresa una cantidad válida de ternas instaladas.');
-      document.getElementById('cantTernasInstaladas').focus();
+    // Validar Configuración 1
+    if (!cantConf1 || isNaN(cantConf1) || Number(cantConf1) < 1) {
+      alert('Ingresa una cantidad válida de ternas en la Configuración 1.');
+      document.getElementById('cantTernasConf1').focus();
       return;
     }
 
-    if (!calibreInst || isNaN(calibreInst) || Number(calibreInst) <= 0) {
-      alert('Por favor ingresa un calibre válido para las ternas instaladas en mm².');
-      document.getElementById('calibreInstaladas').focus();
+    if (!calibreConf1 || isNaN(calibreConf1) || Number(calibreConf1) <= 0) {
+      alert('Por favor ingresa un calibre válido para la Configuración 1 en mm².');
+      document.getElementById('calibreConf1').focus();
       return;
     }
 
-    if (!configuracion) {
-      alert('Por favor ingresa la Configuración de las ternas (ej. 2(3-1x185mm2)).');
-      document.getElementById('configuracionInput').focus();
+    // Validar Configuración 2 si aplica
+    if (cantConfigs >= 2) {
+      if (!cantConf2 || isNaN(cantConf2) || Number(cantConf2) < 1) {
+        alert('Ingresa una cantidad válida de ternas en la Configuración 2.');
+        document.getElementById('cantTernasConf2').focus();
+        return;
+      }
+      if (!calibreConf2 || isNaN(calibreConf2) || Number(calibreConf2) <= 0) {
+        alert('Por favor ingresa un calibre válido para la Configuración 2 en mm².');
+        document.getElementById('calibreConf2').focus();
+        return;
+      }
+    }
+
+    // Validar Configuración 3 si aplica
+    if (cantConfigs >= 3) {
+      if (!cantConf3 || isNaN(cantConf3) || Number(cantConf3) < 1) {
+        alert('Ingresa una cantidad válida de ternas en la Configuración 3.');
+        document.getElementById('cantTernasConf3').focus();
+        return;
+      }
+      if (!calibreConf3 || isNaN(calibreConf3) || Number(calibreConf3) <= 0) {
+        alert('Por favor ingresa un calibre válido para la Configuración 3 en mm².');
+        document.getElementById('calibreConf3').focus();
+        return;
+      }
+    }
+
+    if (!configFinal) {
+      alert('No se pudo generar la Configuración Final. Verifica los datos ingresados.');
       return;
     }
 
@@ -451,24 +759,95 @@ function initFormSubmission() {
     const yyyy = now.getFullYear();
     const mm = String(now.getMonth() + 1).padStart(2, '0');
     const dd = String(now.getDate()).padStart(2, '0');
-    // Formato exacto 'String/date' (YYYY-MM-DD) requerido por la API de SharePoint
     const dateFormatted = `${yyyy}-${mm}-${dd}`;
+
+    const totalTernasInstaladas = Number(cantConf1) + (cantConfigs >= 2 ? Number(cantConf2) : 0) + (cantConfigs >= 3 ? Number(cantConf3) : 0);
+
+    const configsDetalle = [
+      {
+        config: 1,
+        cantTernas: Number(cantConf1),
+        material: matConf1,
+        calibre: Number(calibreConf1),
+        tipoCable: tipoCableConf1,
+        formula: calculateSingleConfig(1)
+      }
+    ];
+    if (cantConfigs >= 2) {
+      configsDetalle.push({
+        config: 2,
+        cantTernas: Number(cantConf2),
+        material: matConf2,
+        calibre: Number(calibreConf2),
+        tipoCable: tipoCableConf2,
+        formula: calculateSingleConfig(2)
+      });
+    }
+    if (cantConfigs >= 3) {
+      configsDetalle.push({
+        config: 3,
+        cantTernas: Number(cantConf3),
+        material: matConf3,
+        calibre: Number(calibreConf3),
+        tipoCable: tipoCableConf3,
+        formula: calculateSingleConfig(3)
+      });
+    }
 
     const record = {
       id: 'REC-' + Date.now().toString(36).toUpperCase(),
       clientKey: (typeof APP_CONFIG !== 'undefined' && APP_CONFIG.API_CLIENT_KEY) || '',
-      fechaHora: dateFormatted, // YYYY-MM-DD para satisfacer el validador 'String/date' de SharePoint
-      fechaHoraTexto: currentLiveDateTime, // Fecha y hora completa para la app móvil
+      fechaHora: dateFormatted,
+      fechaHoraTexto: currentLiveDateTime,
       sed: sed,
       alim: alim,
       celda: celda,
+
+      // Existente
       cantTernasExistentes: Number(cantExist) || 0,
       materialTernaExistente: matExist,
       calibreTernaExistente: Number(calibreExist) || 0,
-      cantTernasInstaladas: Number(cantInst) || 0,
-      materialTernasInstaladas: matInst,
-      calibreTernasInstaladas: Number(calibreInst) || 0,
-      configuracion: configuracion,
+      tipoCableExistente: tipoCableExist,
+
+      // Transformador & Configuraciones
+      transformador: transfTexto,
+      transformadorFases: Number(transfFases),
+      cantConfiguraciones: cantConfigs,
+
+      // Configuración 1 (Campos individuales directos para SharePoint)
+      cantConf1: Number(cantConf1) || 0,
+      materialConf1: matConf1,
+      calibreConf1: Number(calibreConf1) || 0,
+      tipoCableConf1: tipoCableConf1,
+      formulaConf1: calculateSingleConfig(1),
+
+      // Configuración 2 (Campos individuales directos para SharePoint)
+      cantConf2: cantConfigs >= 2 ? (Number(cantConf2) || 0) : 0,
+      materialConf2: cantConfigs >= 2 ? matConf2 : '',
+      calibreConf2: cantConfigs >= 2 ? (Number(calibreConf2) || 0) : 0,
+      tipoCableConf2: cantConfigs >= 2 ? tipoCableConf2 : '',
+      formulaConf2: cantConfigs >= 2 ? calculateSingleConfig(2) : '',
+
+      // Configuración 3 (Campos individuales directos para SharePoint)
+      cantConf3: cantConfigs >= 3 ? (Number(cantConf3) || 0) : 0,
+      materialConf3: cantConfigs >= 3 ? matConf3 : '',
+      calibreConf3: cantConfigs >= 3 ? (Number(calibreConf3) || 0) : 0,
+      tipoCableConf3: cantConfigs >= 3 ? tipoCableConf3 : '',
+      formulaConf3: cantConfigs >= 3 ? calculateSingleConfig(3) : '',
+
+      // Resumen general y Configuración Final generada
+      cantTernasInstaladas: totalTernasInstaladas,
+      cantTotalTernasInstaladas: totalTernasInstaladas,
+      materialTernasInstaladas: matConf1,
+      calibreTernasInstaladas: Number(calibreConf1) || 0,
+      tipoCableInstaladas: tipoCableConf1,
+      configuracion: configFinal,
+      configuracionFinal: configFinal,
+
+      // Detalle estructurado
+      configuracionesDetalle: configsDetalle,
+
+      // Candado, comentarios, responsable, evidencias
       candadoElectronico: candado,
       comentarios: comentarios,
       responsable: responsable,
@@ -486,10 +865,10 @@ function initFormSubmission() {
       : `<span>Transmitiendo a SharePoint...</span>`;
 
     try {
-      // 1. Enviar primero a SharePoint a través de Power Automate (con las fotos para el flujo)
+      // 1. Enviar primero a SharePoint a través de Power Automate
       await sendToSharePoint(record);
 
-      // 2. Guardar respaldo local ligero en el teléfono (sin saturar la cuota de memoria)
+      // 2. Guardar respaldo local ligero en el teléfono
       saveRecordLocal(record);
 
       showToast(`✓ Registro guardado en SharePoint: SED ${record.sed} - Celda ${record.celda}`);
@@ -519,25 +898,65 @@ function resetFormKeepingResponsable() {
   document.getElementById('celdaInput').value = '';
   document.getElementById('cantTernasExistentes').value = '';
   document.getElementById('calibreExistente').value = '';
-  document.getElementById('cantTernasInstaladas').value = '1';
-  document.getElementById('calibreInstaladas').value = '';
   
-  const configInput = document.getElementById('configuracionInput');
-  if (configInput) configInput.value = '';
-
-  // Restablecer material existente
+  // Restablecer material y tipo cable existente
   const matExistBtns = document.querySelectorAll('#groupMatExistente .mat-toggle-btn');
   matExistBtns.forEach(btn => {
     btn.classList.toggle('active', btn.getAttribute('data-value') === 'Cobre (Cu)');
   });
   document.getElementById('matTernaExistente').value = 'Cobre (Cu)';
+  updateCableTypeSelect('tipoCableExistenteSelect', 'calibreExistente', 'Cobre (Cu)');
 
-  // Restablecer material instalado
-  const matInstBtns = document.querySelectorAll('#groupMatInstaladas .mat-toggle-btn');
-  matInstBtns.forEach(btn => {
+  // Restablecer transformador y cantidad de configuraciones
+  const transfSelect = document.getElementById('transformadorSelect');
+  if (transfSelect) transfSelect.value = '3';
+
+  const selectCant = document.getElementById('cantConfiguracionesSelect');
+  if (selectCant) {
+    selectCant.value = '1';
+    const box2 = document.getElementById('boxConfig2');
+    const box3 = document.getElementById('boxConfig3');
+    if (box2) box2.style.display = 'none';
+    if (box3) box3.style.display = 'none';
+  }
+
+  // Restablecer Configuración 1
+  document.getElementById('cantTernasConf1').value = '1';
+  const matConf1Btns = document.querySelectorAll('#groupMatConf1 .mat-toggle-btn');
+  matConf1Btns.forEach(btn => {
     btn.classList.toggle('active', btn.getAttribute('data-value') === 'Cobre (Cu)');
   });
-  document.getElementById('matTernaInstalada').value = 'Cobre (Cu)';
+  document.getElementById('matInstaladaConf1').value = 'Cobre (Cu)';
+  updateCableTypeSelect('tipoCableConf1Select', 'calibreConf1', 'Cobre (Cu)');
+  document.getElementById('configCalcConf1').value = '';
+
+  // Restablecer Configuración 2
+  if (document.getElementById('cantTernasConf2')) document.getElementById('cantTernasConf2').value = '1';
+  const matConf2Btns = document.querySelectorAll('#groupMatConf2 .mat-toggle-btn');
+  matConf2Btns.forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-value') === 'Cobre (Cu)');
+  });
+  if (document.getElementById('matInstaladaConf2')) document.getElementById('matInstaladaConf2').value = 'Cobre (Cu)';
+  updateCableTypeSelect('tipoCableConf2Select', 'calibreConf2', 'Cobre (Cu)');
+  if (document.getElementById('configCalcConf2')) document.getElementById('configCalcConf2').value = '';
+
+  // Restablecer Configuración 3
+  if (document.getElementById('cantTernasConf3')) document.getElementById('cantTernasConf3').value = '1';
+  const matConf3Btns = document.querySelectorAll('#groupMatConf3 .mat-toggle-btn');
+  matConf3Btns.forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-value') === 'Cobre (Cu)');
+  });
+  if (document.getElementById('matInstaladaConf3')) document.getElementById('matInstaladaConf3').value = 'Cobre (Cu)';
+  updateCableTypeSelect('tipoCableConf3Select', 'calibreConf3', 'Cobre (Cu)');
+  if (document.getElementById('configCalcConf3')) document.getElementById('configCalcConf3').value = '';
+
+  recalcAllConfigurations();
+
+  // Restablecer Configuración Final
+  const finalDisplay = document.getElementById('configFinalDisplay');
+  if (finalDisplay) finalDisplay.textContent = 'Esperando datos...';
+  const finalInput = document.getElementById('configuracionFinalInput');
+  if (finalInput) finalInput.value = '';
 
   // Restablecer candado electrónico a 'No'
   const candadoBtns = document.querySelectorAll('#groupCandado .mat-toggle-btn');
@@ -591,7 +1010,12 @@ async function sendToSharePoint(record) {
     clearTimeout(timer);
 
     if (!response.ok) {
-      throw new Error(`Servidor respondió con código ${response.status}`);
+      let detail = '';
+      try {
+        const text = await response.text();
+        detail = text ? ` (${text.substring(0, 150)})` : '';
+      } catch (e) {}
+      throw new Error(`Servidor respondió con código ${response.status}${detail}`);
     }
 
     const resText = await response.text();
@@ -821,24 +1245,42 @@ window.openRecordDetail = function(recordId) {
         <span class="detail-val">${escapeHtml(r.materialTernaExistente)}</span>
       </div>
       <div class="detail-row">
+        <span class="detail-label">Tipo Cable Existente</span>
+        <span class="detail-val">${escapeHtml(r.tipoCableExistente || '-')}</span>
+      </div>
+      <div class="detail-row">
         <span class="detail-label">Calibre Existente</span>
         <span class="detail-val">${r.calibreTernaExistente ? escapeHtml(r.calibreTernaExistente) + ' mm²' : '-'}</span>
       </div>
       <div class="detail-row">
-        <span class="detail-label">6. Cant. Ternas Instaladas</span>
-        <span class="detail-val">${escapeHtml(r.cantTernasInstaladas)}</span>
+        <span class="detail-label">Transformador</span>
+        <span class="detail-val">${escapeHtml(r.transformador || 'Trifásico')}</span>
       </div>
       <div class="detail-row">
-        <span class="detail-label">7. Mat. Ternas Instaladas</span>
-        <span class="detail-val">${escapeHtml(r.materialTernasInstaladas)}</span>
+        <span class="detail-label">Cant. Configuraciones</span>
+        <span class="detail-val">${escapeHtml(r.cantConfiguraciones || '1')}</span>
       </div>
       <div class="detail-row">
-        <span class="detail-label">Calibre Instaladas</span>
-        <span class="detail-val">${r.calibreTernasInstaladas ? escapeHtml(r.calibreTernasInstaladas) + ' mm²' : '-'}</span>
+        <span class="detail-label">Configuración 1</span>
+        <span class="detail-val">${escapeHtml(r.cantConf1 || r.cantTernasInstaladas || 1)} terna(s) [${escapeHtml(r.materialConf1 || r.materialTernasInstaladas || '')} - ${escapeHtml(r.tipoCableConf1 || r.tipoCableInstaladas || '')} ${escapeHtml(r.calibreConf1 || r.calibreTernasInstaladas || '')} mm²] &rarr; <strong>${escapeHtml(r.formulaConf1 || '')}</strong></span>
+      </div>
+      ${(Number(r.cantConfiguraciones) >= 2 && r.cantConf2) ? `
+      <div class="detail-row">
+        <span class="detail-label">Configuración 2</span>
+        <span class="detail-val">${escapeHtml(r.cantConf2)} terna(s) [${escapeHtml(r.materialConf2 || '')} - ${escapeHtml(r.tipoCableConf2 || '')} ${escapeHtml(r.calibreConf2 || '')} mm²] &rarr; <strong>${escapeHtml(r.formulaConf2 || '')}</strong></span>
+      </div>` : ''}
+      ${(Number(r.cantConfiguraciones) >= 3 && r.cantConf3) ? `
+      <div class="detail-row">
+        <span class="detail-label">Configuración 3</span>
+        <span class="detail-val">${escapeHtml(r.cantConf3)} terna(s) [${escapeHtml(r.materialConf3 || '')} - ${escapeHtml(r.tipoCableConf3 || '')} ${escapeHtml(r.calibreConf3 || '')} mm²] &rarr; <strong>${escapeHtml(r.formulaConf3 || '')}</strong></span>
+      </div>` : ''}
+      <div class="detail-row">
+        <span class="detail-label">Cant. Total Ternas Inst.</span>
+        <span class="detail-val">${escapeHtml(r.cantTotalTernasInstaladas || r.cantTernasInstaladas || '0')}</span>
       </div>
       <div class="detail-row">
-        <span class="detail-label">Configuración</span>
-        <span class="detail-val">${escapeHtml(r.configuracion || '-')}</span>
+        <span class="detail-label">Configuración Final</span>
+        <span class="detail-val" style="font-weight:700; color:var(--lds-navy);">${escapeHtml(r.configuracionFinal || r.configuracion || '-')}</span>
       </div>
       <div class="detail-row">
         <span class="detail-label">¿Candado Electrónico?</span>
@@ -886,10 +1328,12 @@ function initClipboardFeatures() {
       const cantExist = document.getElementById('cantTernasExistentes').value.trim();
       const matExist = document.getElementById('matTernaExistente').value.trim();
       const calibreExist = document.getElementById('calibreExistente').value.trim();
-      const cantInst = document.getElementById('cantTernasInstaladas').value.trim();
-      const matInst = document.getElementById('matTernaInstalada').value.trim();
-      const calibreInst = document.getElementById('calibreInstaladas').value.trim();
-      const configuracion = document.getElementById('configuracionInput').value.trim();
+      const tipoCableExist = document.getElementById('tipoCableExistenteSelect')?.value || '';
+      
+      const transfSelect = document.getElementById('transformadorSelect');
+      const transfText = transfSelect ? transfSelect.options[transfSelect.selectedIndex].text : 'Trifásico';
+      
+      const configFinal = (document.getElementById('configuracionFinalInput')?.value || document.getElementById('configFinalDisplay')?.textContent || '-').trim();
       const candado = document.getElementById('candadoElectronico').value.trim() || 'No';
       const comentarios = document.getElementById('comentariosInput').value.trim();
       const responsable = document.getElementById('responsableSelect').value.trim();
@@ -900,15 +1344,48 @@ function initClipboardFeatures() {
         return;
       }
 
+      const selectCant = document.getElementById('cantConfiguracionesSelect');
+      const cantConfigs = selectCant ? parseInt(selectCant.value, 10) : 1;
+
+      const cantConf1 = document.getElementById('cantTernasConf1')?.value || '1';
+      const matConf1 = document.getElementById('matInstaladaConf1')?.value || 'Cobre (Cu)';
+      const tipoCableConf1 = document.getElementById('tipoCableConf1Select')?.value || 'N2XY';
+      const calibreConf1 = document.getElementById('calibreConf1')?.value || '';
+      const formulaConf1 = calculateSingleConfig(1);
+
+      const cantConf2 = document.getElementById('cantTernasConf2')?.value || '1';
+      const matConf2 = document.getElementById('matInstaladaConf2')?.value || 'Cobre (Cu)';
+      const tipoCableConf2 = document.getElementById('tipoCableConf2Select')?.value || 'N2XY';
+      const calibreConf2 = document.getElementById('calibreConf2')?.value || '';
+      const formulaConf2 = calculateSingleConfig(2);
+
+      const cantConf3 = document.getElementById('cantTernasConf3')?.value || '1';
+      const matConf3 = document.getElementById('matInstaladaConf3')?.value || 'Cobre (Cu)';
+      const tipoCableConf3 = document.getElementById('tipoCableConf3Select')?.value || 'N2XY';
+      const calibreConf3 = document.getElementById('calibreConf3')?.value || '';
+      const formulaConf3 = calculateSingleConfig(3);
+
+      const totalInstaladas = Number(cantConf1 || 0) + (cantConfigs >= 2 ? Number(cantConf2 || 0) : 0) + (cantConfigs >= 3 ? Number(cantConf3 || 0) : 0);
+
+      let configsBlock = `• Configuración 1: ${cantConf1} terna(s) [${matConf1} - ${tipoCableConf1} ${calibreConf1} mm²] → ${formulaConf1}\n`;
+      if (cantConfigs >= 2) {
+        configsBlock += `• Configuración 2: ${cantConf2} terna(s) [${matConf2} - ${tipoCableConf2} ${calibreConf2} mm²] → ${formulaConf2}\n`;
+      }
+      if (cantConfigs >= 3) {
+        configsBlock += `• Configuración 3: ${cantConf3} terna(s) [${matConf3} - ${tipoCableConf3} ${calibreConf3} mm²] → ${formulaConf3}\n`;
+      }
+
       const textToCopy = 
 `⚡ REPORTE DE TERNA - LUZ DEL SUR ⚡
 📅 Fecha/Hora: ${currentLiveDateTime}
 • SED: ${sed || '(Sin definir)'}
 • Alim: ${alim || '-'}
 • Celda: ${celda || '-'}
-• Cant. Existentes: ${cantExist || '0'} (${matExist}) | Calibre: ${calibreExist || '-'} mm²
-• Cant. Instaladas: ${cantInst || '0'} (${matInst}) | Calibre: ${calibreInst || '-'} mm²
-• Configuración: ${configuracion || '-'}
+• Cant. Existentes: ${cantExist || '0'} (${matExist} - ${tipoCableExist}) | Calibre: ${calibreExist || '-'} mm²
+• Transformador: ${transfText}
+• Cant. Configuraciones: ${cantConfigs}
+${configsBlock}• Cant. Total Ternas Inst.: ${totalInstaladas}
+• Configuración Final: ${configFinal}
 • ¿Candado Electrónico?: ${candado}
 • Responsable: ${responsable || 'No seleccionado'}
 • Comentarios: ${comentarios || 'Ninguno'}
@@ -930,8 +1407,14 @@ function initClipboardFeatures() {
       records.forEach((r, idx) => {
         text += `[#${idx + 1}] SED: ${r.sed} | Celda: ${r.celda} | Alim: ${r.alim}\n`;
         text += `• Existentes: ${r.cantTernasExistentes} (${r.materialTernaExistente}) - Calibre: ${r.calibreTernaExistente || '-'} mm²\n`;
-        text += `• Instaladas: ${r.cantTernasInstaladas} (${r.materialTernasInstaladas}) - Calibre: ${r.calibreTernasInstaladas || '-'} mm²\n`;
-        text += `• Config: ${r.configuracion || '-'} | Candado: ${r.candadoElectronico || '-'}\n`;
+        text += `• Conf 1: ${r.cantConf1 || r.cantTernasInstaladas || '0'} (${r.materialConf1 || r.materialTernasInstaladas || '-'} - ${r.tipoCableConf1 || r.tipoCableInstaladas || '-'} ${r.calibreConf1 || r.calibreTernasInstaladas || '-'} mm²)\n`;
+        if (Number(r.cantConfiguraciones) >= 2 && r.cantConf2) {
+          text += `• Conf 2: ${r.cantConf2} (${r.materialConf2} - ${r.tipoCableConf2} ${r.calibreConf2} mm²)\n`;
+        }
+        if (Number(r.cantConfiguraciones) >= 3 && r.cantConf3) {
+          text += `• Conf 3: ${r.cantConf3} (${r.materialConf3} - ${r.tipoCableConf3} ${r.calibreConf3} mm²)\n`;
+        }
+        text += `• Config Final: ${r.configuracionFinal || r.configuracion || '-'}\n`;
         text += `• Fecha: ${r.fechaHoraTexto || r.fechaHora} | Resp: ${r.responsable}\n`;
         text += `----------------------------------------\n`;
       });
@@ -947,15 +1430,26 @@ window.copyRecordDetail = function(recordId) {
   if (!r) return;
 
   const numEvid = r.evidencias ? r.evidencias.length : 0;
+  const cantConfigs = Number(r.cantConfiguraciones) || 1;
+  let configsBlock = `• Configuración 1: ${r.cantConf1 || r.cantTernasInstaladas || '0'} terna(s) [${r.materialConf1 || r.materialTernasInstaladas || '-'} - ${r.tipoCableConf1 || r.tipoCableInstaladas || '-'} ${r.calibreConf1 || r.calibreTernasInstaladas || '-'} mm²] → ${r.formulaConf1 || '-'}\n`;
+  if (cantConfigs >= 2 && r.cantConf2) {
+    configsBlock += `• Configuración 2: ${r.cantConf2} terna(s) [${r.materialConf2} - ${r.tipoCableConf2} ${r.calibreConf2} mm²] → ${r.formulaConf2 || '-'}\n`;
+  }
+  if (cantConfigs >= 3 && r.cantConf3) {
+    configsBlock += `• Configuración 3: ${r.cantConf3} terna(s) [${r.materialConf3} - ${r.tipoCableConf3} ${r.calibreConf3} mm²] → ${r.formulaConf3 || '-'}\n`;
+  }
+
   const text = 
 `⚡ TERNA LUZ DEL SUR ⚡
 📅 Fecha/Hora: ${r.fechaHoraTexto || r.fechaHora}
 • SED: ${r.sed}
 • Alim: ${r.alim}
 • Celda: ${r.celda}
-• Cant. Existentes: ${r.cantTernasExistentes} (${r.materialTernaExistente}) | Calibre: ${r.calibreTernaExistente || '-'} mm²
-• Cant. Instaladas: ${r.cantTernasInstaladas} (${r.materialTernasInstaladas}) | Calibre: ${r.calibreTernasInstaladas || '-'} mm²
-• Configuración: ${r.configuracion || '-'}
+• Cant. Existentes: ${r.cantTernasExistentes} (${r.materialTernaExistente} - ${r.tipoCableExistente || 'N2XY'}) | Calibre: ${r.calibreTernaExistente || '-'} mm²
+• Transformador: ${r.transformador || 'Trifásico'}
+• Cant. Configuraciones: ${cantConfigs}
+${configsBlock}• Cant. Total Ternas Inst.: ${r.cantTotalTernasInstaladas || r.cantTernasInstaladas || '0'}
+• Configuración Final: ${r.configuracionFinal || r.configuracion || '-'}
 • ¿Candado Electrónico?: ${r.candadoElectronico || '-'}
 • Responsable: ${r.responsable}
 • Comentarios: ${r.comentarios}
@@ -1003,17 +1497,23 @@ function exportRecordsToCSV() {
 
   const headers = [
     'Fecha y Hora', 'SED', 'Alim.', 'Celda',
-    'Cantidad de ternas existentes', 'Material de terna existente', 'Calibre terna existente',
-    'Cantidad de Ternas Instaladas', 'Material de Ternas Instaladas', 'Calibre ternas instaladas',
-    'Configuración', 'Candado Electrónico',
+    'Cantidad de ternas existentes', 'Material de terna existente', 'Tipo cable existente', 'Calibre terna existente',
+    'Transformador', 'Cantidad Configuraciones',
+    'Cant. Ternas Conf 1', 'Material Conf 1', 'Tipo Cable Conf 1', 'Calibre Conf 1', 'Fórmula Conf 1',
+    'Cant. Ternas Conf 2', 'Material Conf 2', 'Tipo Cable Conf 2', 'Calibre Conf 2', 'Fórmula Conf 2',
+    'Cant. Ternas Conf 3', 'Material Conf 3', 'Tipo Cable Conf 3', 'Calibre Conf 3', 'Fórmula Conf 3',
+    'Cantidad de Ternas Instaladas', 'Configuración Final', 'Candado Electrónico',
     'Comentarios', 'Responsable'
   ];
 
   const rows = records.map(r => [
     `"${r.fechaHoraTexto || r.fechaHora}"`, `"${r.sed}"`, `"${r.alim}"`, `"${r.celda}"`,
-    `"${r.cantTernasExistentes}"`, `"${r.materialTernaExistente}"`, `"${r.calibreTernaExistente || ''}"`,
-    `"${r.cantTernasInstaladas}"`, `"${r.materialTernasInstaladas}"`, `"${r.calibreTernasInstaladas || ''}"`,
-    `"${r.configuracion || ''}"`, `"${r.candadoElectronico || ''}"`,
+    `"${r.cantTernasExistentes}"`, `"${r.materialTernaExistente}"`, `"${r.tipoCableExistente || ''}"`, `"${r.calibreTernaExistente || ''}"`,
+    `"${r.transformador || ''}"`, `"${r.cantConfiguraciones || '1'}"`,
+    `"${r.cantConf1 || ''}"`, `"${r.materialConf1 || ''}"`, `"${r.tipoCableConf1 || ''}"`, `"${r.calibreConf1 || ''}"`, `"${r.formulaConf1 || ''}"`,
+    `"${r.cantConf2 || ''}"`, `"${r.materialConf2 || ''}"`, `"${r.tipoCableConf2 || ''}"`, `"${r.calibreConf2 || ''}"`, `"${r.formulaConf2 || ''}"`,
+    `"${r.cantConf3 || ''}"`, `"${r.materialConf3 || ''}"`, `"${r.tipoCableConf3 || ''}"`, `"${r.calibreConf3 || ''}"`, `"${r.formulaConf3 || ''}"`,
+    `"${r.cantTernasInstaladas || r.cantTotalTernasInstaladas || ''}"`, `"${r.configuracion || r.configuracionFinal || ''}"`, `"${r.candadoElectronico || ''}"`,
     `"${(r.comentarios || '').replace(/"/g, '""')}"`, `"${r.responsable}"`
   ]);
 

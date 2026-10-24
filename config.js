@@ -1,32 +1,19 @@
 /**
  * ============================================================================
- * ARCHIVO DE CONFIGURACIÓN Y SEGURIDAD OFUSCADO - LUZ DEL SUR
+ * ARCHIVO DE CONFIGURACIÓN Y SEGURIDAD - APLICATIVO LUZ DEL SUR
  * ============================================================================
- * 
- * Protección para despliegue en repositorios públicos y GitHub Pages:
- * - Endpoints y llaves codificadas para prevenir lectura directa y rastreo de bots.
- * - Desofuscación dinámica en memoria de ejecución.
  */
-
-// Función interna de desofuscación
-const _0xlds = (encoded) => {
-  try {
-    return decodeURIComponent(escape(atob(encoded)));
-  } catch (e) {
-    return atob(encoded);
-  }
-};
 
 const APP_CONFIG = {
   /**
-   * Endpoint oficial de Power Automate (Ofuscado con protección base64)
+   * Endpoint oficial de Power Automate conectado a SharePoint
    */
-  SHAREPOINT_ENDPOINT_URL: _0xlds("aHR0cHM6Ly9kZWZhdWx0MWMwMDUxZGQ0NTk2NGIxYTk4NDlkMDYwNzM1MDU3LjY5LmVudmlyb25tZW50LmFwaS5wb3dlcnBsYXRmb3JtLmNvbTo0NDMvcG93ZXJhdXRvbWF0ZS9hdXRvbWF0aW9ucy9kaXJlY3QvY3UvMjQvd29ya2Zsb3dzLzhmNmM1MDQ5NDJiYzQzZmM4YzNiMjMwOWFmMGI3M2NmL3RyaWdnZXJzL21hbnVhbC9wYXRocy9pbnZva2U/YXBpLXZlcnNpb249MSZzcD0lMkZ0cmlnZ2VycyUyRm1hbnVhbCUyRnJ1biZzdj0xLjAmc2lnPWlIV1RrMXB5cFBoNmFyalhsU0I5VGp4SXBzZEk3Tk4yeld4X0tqc0ZMakU="),
+  SHAREPOINT_ENDPOINT_URL: "https://default1c0051dd45964b1a9849d060735057.69.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/24/workflows/8f6c504942bc43fc8c3b2309af0b73cf/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=iHWTk1pypPH6arjXlSB9TjxIpsdI7NN2zWx_KjsFLjE",
 
   /**
-   * Token secreto de validación de cliente
+   * Token de validación de cliente
    */
-  API_CLIENT_KEY: _0xlds("TERTX1RFUk5BU19GSUVMRF8yMDI2"),
+  API_CLIENT_KEY: "LDS_TERNAS_FIELD_2026",
 
   /**
    * Tiempo base de espera (3 minutos = 180,000 ms)

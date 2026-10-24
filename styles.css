@@ -370,6 +370,73 @@ body {
   border-color: var(--lds-navy);
 }
 
+/* Botón de información interactivo para campos existentes */
+.btn-info-circle {
+  background: transparent;
+  border: none;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #3B82F6;
+  border-radius: 50%;
+  margin-left: 2px;
+  vertical-align: middle;
+}
+
+.btn-info-circle svg {
+  width: 15px;
+  height: 15px;
+  fill: #3B82F6;
+  transition: transform 0.15s ease, fill 0.15s ease;
+}
+
+.btn-info-circle:active svg {
+  transform: scale(1.25);
+  fill: #1D4ED8;
+}
+
+/* Modal Info Sheet */
+.info-sheet {
+  max-width: 340px !important;
+  text-align: center;
+  padding: 22px 18px !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.info-sheet-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #EFF6FF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.info-sheet-icon svg {
+  width: 26px;
+  height: 26px;
+  fill: #2563EB;
+}
+
+.info-sheet-title {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--lds-navy);
+  margin-bottom: 8px;
+}
+
+.info-sheet-desc {
+  font-size: 0.83rem;
+  color: #475569;
+  line-height: 1.5;
+}
+
 /* ==========================================
    SECCIÓN DE EVIDENCIAS FOTOGRÁFICAS
    ========================================== */
@@ -572,6 +639,77 @@ body {
   margin-top: 16px;
   margin-bottom: 6px;
   letter-spacing: 0.4px;
+}
+
+/* ==========================================
+   BLOQUES DE CONFIGURACIÓN DINÁMICA
+   ========================================== */
+.config-section-card {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.config-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--lds-navy);
+  border-bottom: 1px dashed #CBD5E1;
+  padding-bottom: 4px;
+}
+
+.config-badge {
+  background: var(--lds-navy);
+  color: #FFFFFF;
+  font-size: 0.68rem;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.config-auto-input {
+  background-color: #F1F5F9 !important;
+  color: var(--lds-navy) !important;
+  font-weight: 700 !important;
+  font-family: monospace, monospace !important;
+  font-size: 0.88rem !important;
+  letter-spacing: 0.5px !important;
+  text-align: center;
+}
+
+.config-final-wrapper {
+  background: #EFF6FF;
+  border: 1.5px solid #3B82F6;
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.config-final-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #1D4ED8;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.config-final-text {
+  font-family: monospace, monospace;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #1E3A8A;
+  text-align: center;
+  word-break: break-all;
 }
 
 /* ==========================================
